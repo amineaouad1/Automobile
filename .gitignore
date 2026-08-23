@@ -1,0 +1,11 @@
+.idea/
+*.iml
+out/
+target/
+build/
+
+*.sql
+*.bak
+
+.env
+secret.properties
