@@ -5,11 +5,13 @@ import com.atelier.dto.request.AffecterMecanicienRequest;
 import com.atelier.dto.request.ChangerStatutRequest;
 import com.atelier.dto.request.CreerInterventionRequest;
 import com.atelier.entity.Utilisateur;
-import com.atelier.entity.enums.RoleUtilisateur;
+import com.atelier.security.UtilisateurPrincipal;
 import com.atelier.service.InterventionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -21,10 +23,12 @@ public class InterventionController {
     private final InterventionService interventionService;
 
     @PostMapping
-    public ResponseEntity<InterventionDTO> creer(@RequestBody CreerInterventionRequest request) {
-        // TODO Phase 5 : remplacer par l'utilisateur extrait du JWT (SecurityContextHolder)
-        Utilisateur conseillerFictif = utilisateurFictifConseiller();
-        return ResponseEntity.status(HttpStatus.CREATED).body(interventionService.creer(request, conseillerFictif));
+    public ResponseEntity<InterventionDTO> creer(
+            @RequestBody CreerInterventionRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        Utilisateur createur = principal.getUtilisateur();
+        InterventionDTO creee = interventionService.creer(request, createur);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creee);
     }
 
     @GetMapping
@@ -40,35 +44,21 @@ public class InterventionController {
     @PatchMapping("/{id}/statut")
     public ResponseEntity<InterventionDTO> changerStatut(
             @PathVariable Long id,
-            @RequestBody ChangerStatutRequest request) {
-        // TODO Phase 5 : remplacer par l'utilisateur extrait du JWT
-        Utilisateur auteurFictif = utilisateurFictifManager();
-        return ResponseEntity.ok(interventionService.changerStatut(id, request, auteurFictif));
+            @RequestBody ChangerStatutRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        Utilisateur auteur = principal.getUtilisateur();
+        InterventionDTO miseAJour = interventionService.changerStatut(id, request, auteur);
+        return ResponseEntity.ok(miseAJour);
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{id}/mecanicien")
     public ResponseEntity<InterventionDTO> affecterMecanicien(
             @PathVariable Long id,
-            @RequestBody AffecterMecanicienRequest request) {
-        // TODO Phase 5 : action manager-only
-        Utilisateur managerFictif = utilisateurFictifManager();
-        return ResponseEntity.ok(interventionService.affecterMecanicien(id, request, managerFictif));
-    }
-
-    // ==================== SIMULATION UTILISATEUR ====================
-    private Utilisateur utilisateurFictifConseiller() {
-        Utilisateur utilisateur = new Utilisateur();
-        utilisateur.setId(1L);
-        utilisateur.setNom("Conseiller Test");
-        utilisateur.setRole(RoleUtilisateur.ROLE_USER);
-        return utilisateur;
-    }
-
-    private Utilisateur utilisateurFictifManager() {
-        Utilisateur utilisateur = new Utilisateur();
-        utilisateur.setId(2L);
-        utilisateur.setNom("Manager Test");
-        utilisateur.setRole(RoleUtilisateur.ROLE_MANAGER);
-        return utilisateur;
+            @RequestBody AffecterMecanicienRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        Utilisateur manager = principal.getUtilisateur();
+        InterventionDTO miseAJour = interventionService.affecterMecanicien(id, request, manager);
+        return ResponseEntity.ok(miseAJour);
     }
 }

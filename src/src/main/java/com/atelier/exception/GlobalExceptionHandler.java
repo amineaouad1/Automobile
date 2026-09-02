@@ -3,6 +3,7 @@ package com.atelier.exception;
 import com.atelier.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
@@ -28,6 +29,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         return construireReponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    // HADI ZDNAHA 3LA QBL LOGIN GHALAT
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
+        return construireReponse(HttpStatus.UNAUTHORIZED, "Email ou mot de passe incorrect.");
     }
 
     @ExceptionHandler(Exception.class)
