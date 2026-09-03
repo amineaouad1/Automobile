@@ -9,7 +9,6 @@ import java.util.Optional;
 @Repository
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> {
 
-    // Hada howa s-ster s-s7ri li k-y-khli Spring Security y-lqa l-Client b l-Email dyalo
     Optional<Utilisateur> findByEmail(String email);
 
 }

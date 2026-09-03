@@ -27,4 +27,7 @@ public class Utilisateur {
 
     @Enumerated(EnumType.STRING)
     private RoleUtilisateur role;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<Vehicule> vehicules;
 }

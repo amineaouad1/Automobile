@@ -11,12 +11,13 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class Vehicule {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "immatriculation_fictive", nullable = false, unique = true, length = 20)
-    private String immatriculationFictive;
+    @Column(name = "immatriculation", nullable = false, unique = true, length = 20)
+    private String immatriculation;
 
     @Column(nullable = false, length = 50)
     private String marque;
@@ -30,6 +31,7 @@ public class Vehicule {
     @Column(nullable = false)
     private int kilometrage;
 
-    @Column(name = "client_fictif", nullable = false, length = 100)
-    private String clientFictif;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id", nullable = false)
+    private Utilisateur client;
 }

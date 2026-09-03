@@ -6,10 +6,10 @@ import lombok.Setter;
 @Setter
 public class VehiculeDTO {
     private Long id;
-    private String immatriculationFictive;
+    private String immatriculation;
     private String marque;
     private String modele;
     private int annee;
     private int kilometrage;
-    private String clientFictif;
+    private String clientId;
 }
