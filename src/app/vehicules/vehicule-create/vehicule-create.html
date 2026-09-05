@@ -1,0 +1,123 @@
+<div class="container mt-4">
+
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Nouveau Véhicule</h4>
+        </div>
+
+        <div class="card-body p-4">
+
+          <div *ngIf="erreur" class="alert alert-danger">{{ erreur }}</div>
+
+          <form [formGroup]="vehiculeForm" (ngSubmit)="onSubmit()">
+
+            <div class="mb-3">
+              <label for="immatriculation" class="form-label">Immatriculation</label>
+              <input
+                id="immatriculation"
+                type="text"
+                class="form-control"
+                formControlName="immatriculation"
+                [class.is-invalid]="f['immatriculation'].invalid && f['immatriculation'].touched"
+                placeholder="Ex: 12345-A-6">
+              <div class="invalid-feedback" *ngIf="f['immatriculation'].invalid && f['immatriculation'].touched">
+                <span *ngIf="f['immatriculation'].errors?.['required']">L'immatriculation est obligatoire.</span>
+                <span *ngIf="f['immatriculation'].errors?.['minlength']">Minimum 4 caractères.</span>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="marque" class="form-label">Marque</label>
+              <input
+                id="marque"
+                type="text"
+                class="form-control"
+                formControlName="marque"
+                [class.is-invalid]="f['marque'].invalid && f['marque'].touched"
+                placeholder="Ex: Renault">
+              <div class="invalid-feedback" *ngIf="f['marque'].invalid && f['marque'].touched">
+                La marque est obligatoire.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="modele" class="form-label">Modèle</label>
+              <input
+                id="modele"
+                type="text"
+                class="form-control"
+                formControlName="modele"
+                [class.is-invalid]="f['modele'].invalid && f['modele'].touched"
+                placeholder="Ex: Clio 4">
+              <div class="invalid-feedback" *ngIf="f['modele'].invalid && f['modele'].touched">
+                Le modèle est obligatoire.
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="annee" class="form-label">Année</label>
+                <input
+                  id="annee"
+                  type="number"
+                  class="form-control"
+                  formControlName="annee"
+                  [class.is-invalid]="f['annee'].invalid && f['annee'].touched">
+                <div class="invalid-feedback" *ngIf="f['annee'].invalid && f['annee'].touched">
+                  <span *ngIf="f['annee'].errors?.['required']">L'année est obligatoire.</span>
+                  <span *ngIf="f['annee'].errors?.['min'] || f['annee'].errors?.['max']">
+                    Année invalide (1950 - {{ anneeMax }}).
+                  </span>
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="kilometrage" class="form-label">Kilométrage</label>
+                <input
+                  id="kilometrage"
+                  type="number"
+                  class="form-control"
+                  formControlName="kilometrage"
+                  [class.is-invalid]="f['kilometrage'].invalid && f['kilometrage'].touched">
+                <div class="invalid-feedback" *ngIf="f['kilometrage'].invalid && f['kilometrage'].touched">
+                  Kilométrage invalide (doit être ≥ 0).
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="clientId" class="form-label">ID Client</label>
+              <input
+                id="clientId"
+                type="number"
+                class="form-control"
+                formControlName="clientId"
+                [class.is-invalid]="f['clientId'].invalid && f['clientId'].touched"
+                placeholder="Ex: 1">
+              <div class="invalid-feedback" *ngIf="f['clientId'].invalid && f['clientId'].touched">
+                L'ID client est obligatoire.
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-outline-secondary" (click)="onAnnuler()">
+                Annuler
+              </button>
+              <button type="submit" class="btn btn-primary" [disabled]="enCours">
+                <span *ngIf="enCours" class="spinner-border spinner-border-sm me-2"></span>
+                Enregistrer
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
