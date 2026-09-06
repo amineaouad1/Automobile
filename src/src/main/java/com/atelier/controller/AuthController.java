@@ -26,10 +26,12 @@ public class AuthController {
         );
         UtilisateurPrincipal principal = (UtilisateurPrincipal) authentication.getPrincipal();
         String token = jwtService.genererToken(principal);
+
+        // Hna fin beddelna: 7iyedna .name()
         LoginResponse response = new LoginResponse(
                 token,
                 principal.getUsername(),
-                principal.getUtilisateur().getRole().name()
+                principal.getUtilisateur().getRole()
         );
         return ResponseEntity.ok(response);
     }
