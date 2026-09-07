@@ -1,0 +1,67 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">Dashboard Atelier</h2>
+  <button class="btn btn-accent" (click)="allerVersInterventions()">
+    <i class="bi bi-clipboard2-check me-1"></i>Voir toutes les interventions
+  </button>
+</div>
+
+<div *ngIf="chargement" class="text-center py-5">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Chargement...</span>
+  </div>
+</div>
+
+<div *ngIf="erreur" class="alert alert-danger">{{ erreur }}</div>
+
+<div *ngIf="!chargement && !erreur">
+
+  <!-- Cartes statistiques -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card">
+        <div class="stat-value">{{ recuesAujourdhui }}</div>
+        <div class="stat-label">Reçues aujourd'hui</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card" style="border-left-color: #e65100;">
+        <div class="stat-value">{{ compterParStatut('DIAGNOSTIC_EN_COURS') }}</div>
+        <div class="stat-label">En diagnostic</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card" style="border-left-color: #5e35b1;">
+        <div class="stat-value">{{ compterParStatut('EN_REPARATION') }}</div>
+        <div class="stat-label">En réparation</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card" style="border-left-color: #2e7d32;">
+        <div class="stat-value">{{ compterParStatut('TERMINEE') }}</div>
+        <div class="stat-label">Terminées</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charge atelier -->
+  <div class="card">
+    <div class="card-header bg-white">
+      <h5 class="mb-0">Charge atelier</h5>
+    </div>
+    <div class="card-body">
+      <div class="d-flex justify-content-between mb-2">
+        <span>Interventions actives</span>
+        <strong>{{ totalActives }} / {{ interventions.length }}</strong>
+      </div>
+      <div class="progress" style="height: 10px;">
+        <div
+          class="progress-bar"
+          role="progressbar"
+          [style.width.%]="interventions.length ? (totalActives / interventions.length) * 100 : 0"
+          style="background-color: #1e3a5f;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
