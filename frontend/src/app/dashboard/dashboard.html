@@ -6,16 +6,13 @@
 </div>
 
 <div *ngIf="chargement" class="text-center py-5">
-  <div class="spinner-border text-primary" role="status">
-    <span class="visually-hidden">Chargement...</span>
-  </div>
+  <div class="spinner-border text-primary"></div>
 </div>
 
 <div *ngIf="erreur" class="alert alert-danger">{{ erreur }}</div>
 
 <div *ngIf="!chargement && !erreur">
 
-  <!-- Cartes statistiques -->
   <div class="row g-3 mb-4">
     <div class="col-md-3 col-sm-6">
       <div class="stat-card">
@@ -43,25 +40,50 @@
     </div>
   </div>
 
-  <!-- Charge atelier -->
-  <div class="card">
-    <div class="card-header bg-white">
-      <h5 class="mb-0">Charge atelier</h5>
-    </div>
-    <div class="card-body">
-      <div class="d-flex justify-content-between mb-2">
-        <span>Interventions actives</span>
-        <strong>{{ totalActives }} / {{ interventions.length }}</strong>
-      </div>
-      <div class="progress" style="height: 10px;">
-        <div
-          class="progress-bar"
-          role="progressbar"
-          [style.width.%]="interventions.length ? (totalActives / interventions.length) * 100 : 0"
-          style="background-color: #1e3a5f;">
+  <div class="row g-4">
+
+    <div class="col-md-7">
+      <div class="card h-100">
+        <div class="card-header bg-white"><strong>Répartition des interventions par statut</strong></div>
+        <div class="card-body">
+          <div *ngFor="let b of repartitionParStatut" class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <span>{{ b.label }}</span>
+              <strong>{{ b.count }}</strong>
+            </div>
+            <div class="progress" style="height: 10px;">
+              <div
+                class="progress-bar"
+                role="progressbar"
+                [style.width.%]="b.pourcentage"
+                [style.background-color]="b.couleur">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <div class="col-md-5">
+      <div class="card h-100">
+        <div class="card-header bg-white"><strong>Charge atelier</strong></div>
+        <div class="card-body d-flex flex-column justify-content-center h-100">
+          <div class="text-center mb-3">
+            <div class="stat-value" style="font-size: 3rem;">{{ totalActives }}</div>
+            <div class="stat-label">Interventions actives sur {{ interventions.length }}</div>
+          </div>
+          <div class="progress" style="height: 14px;">
+            <div
+              class="progress-bar"
+              role="progressbar"
+              [style.width.%]="interventions.length ? (totalActives / interventions.length) * 100 : 0"
+              style="background-color: #1e3a5f;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
 </div>

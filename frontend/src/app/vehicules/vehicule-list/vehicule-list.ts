@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { VehiculeService } from '../../services/vehicule';
 import { VehiculeDTO } from '../../models/vehicule.model';
 
 @Component({
   selector: 'app-vehicule-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './vehicule-list.html',
 })
 export class VehiculeListComponent implements OnInit {

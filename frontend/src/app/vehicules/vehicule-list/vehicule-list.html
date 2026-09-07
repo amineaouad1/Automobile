@@ -34,6 +34,7 @@
           <th>Année</th>
           <th>Kilométrage</th>
           <th>Client ID</th>
+          <th></th>
         </tr>
         </thead>
         <tbody>
@@ -45,9 +46,14 @@
           <td>{{ vehicule.annee }}</td>
           <td>{{ vehicule.kilometrage | number }} km</td>
           <td>{{ vehicule.clientId }}</td>
+          <td class="text-end">
+            <a [routerLink]="['/vehicules', vehicule.id]" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
         </tr>
         <tr *ngIf="vehicules.length === 0">
-          <td colspan="7" class="text-center text-muted py-4">
+          <td colspan="8" class="text-center text-muted py-4">
             Aucun véhicule enregistré pour le moment.
           </td>
         </tr>
