@@ -1,0 +1,143 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">Dashboard Atelier</h2>
+  <button class="btn btn-accent" (click)="allerVersInterventions()">
+    <i class="bi bi-clipboard2-check me-1"></i>Voir toutes les interventions
+  </button>
+</div>
+
+<div *ngIf="chargement" class="text-center py-5">
+  <div class="spinner-border text-primary"></div>
+</div>
+
+<div *ngIf="erreur" class="alert alert-danger">{{ erreur }}</div>
+
+<div *ngIf="!chargement && !erreur">
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card">
+        <div class="stat-value">{{ recuesAujourdhui }}</div>
+        <div class="stat-label">Reçues aujourd'hui</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card" style="border-left-color: #e65100;">
+        <div class="stat-value">{{ compterParStatut('DIAGNOSTIC_EN_COURS') }}</div>
+        <div class="stat-label">En diagnostic</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card" style="border-left-color: #5e35b1;">
+        <div class="stat-value">{{ compterParStatut('EN_REPARATION') }}</div>
+        <div class="stat-label">En réparation</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card" style="border-left-color: #2e7d32;">
+        <div class="stat-value">{{ compterParStatut('TERMINEE') }}</div>
+        <div class="stat-label">Terminées</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <div class="col-md-7">
+      <div class="card h-100">
+        <div class="card-header bg-white"><strong>Répartition des interventions par statut</strong></div>
+        <div class="card-body">
+          <div *ngFor="let b of repartitionParStatut" class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <span>{{ b.label }}</span>
+              <strong>{{ b.count }}</strong>
+            </div>
+            <div class="progress" style="height: 10px;">
+              <div
+                class="progress-bar"
+                role="progressbar"
+                [style.width.%]="b.pourcentage"
+                [style.background-color]="b.couleur">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-5">
+      <div class="card">
+        <div class="card-header bg-white"><strong>Charge atelier</strong></div>
+        <div class="card-body">
+          <div class="text-center mb-3">
+            <div class="stat-value" style="font-size: 3rem;">{{ totalActives }}</div>
+            <div class="stat-label">Interventions actives sur {{ interventions.length }}</div>
+          </div>
+          <div class="progress" style="height: 14px;">
+            <div
+              class="progress-bar"
+              role="progressbar"
+              [style.width.%]="interventions.length ? (totalActives / interventions.length) * 100 : 0"
+              style="background-color: #1e3a5f;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row g-4 mt-1">
+
+    <div class="col-md-7">
+      <div class="card h-100">
+        <div class="card-header bg-white"><strong>Charge par mécanicien</strong></div>
+        <div class="card-body">
+          <div *ngIf="chargeParMecanicien.length === 0" class="text-muted text-center py-3">
+            Aucun mécanicien enregistré.
+          </div>
+          <div *ngFor="let c of chargeParMecanicien" class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <div>
+              <span class="fw-semibold">{{ c.mecanicien.nom }}</span>
+              <span class="text-muted small ms-1">({{ c.mecanicien.specialite }})</span>
+              <span class="badge ms-2" [ngClass]="c.mecanicien.disponible ? 'bg-success' : 'bg-secondary'">
+                {{ c.mecanicien.disponible ? 'Disponible' : 'Indisponible' }}
+              </span>
+            </div>
+            <span class="badge bg-primary rounded-pill">{{ c.nbInterventionsActives }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-5">
+      <div class="card h-100">
+        <div class="card-header bg-white">
+          <strong>
+            <i class="bi bi-exclamation-triangle-fill text-danger me-1" *ngIf="retardsRestitution.length > 0"></i>
+            Retards de restitution
+          </strong>
+        </div>
+        <div class="card-body p-0">
+          <div *ngIf="retardsRestitution.length === 0" class="text-muted text-center py-4">
+            Aucun retard en cours.
+          </div>
+          <ul class="list-group list-group-flush" *ngIf="retardsRestitution.length > 0">
+            <li
+              class="list-group-item d-flex justify-content-between align-items-center"
+              style="cursor: pointer;"
+              *ngFor="let i of retardsRestitution"
+              (click)="allerVersIntervention(i.id)">
+              <div>
+                <span class="fw-semibold">{{ i.vehicule.immatriculation }}</span>
+                <div class="small text-muted">Prévue le {{ i.dateRestitutionPrevue | date: 'dd/MM/yyyy' }}</div>
+              </div>
+              <span class="badge-statut" [ngClass]="'badge-' + i.statut">{{ i.statut }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

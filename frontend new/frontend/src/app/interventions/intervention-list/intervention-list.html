@@ -1,0 +1,83 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">Interventions</h2>
+  <a routerLink="/interventions/nouvelle" class="btn btn-accent">
+    <i class="bi bi-plus-lg me-1"></i>Nouvelle intervention
+  </a>
+</div>
+
+<div class="mb-3 d-flex gap-2 flex-wrap">
+  <button
+    class="btn btn-sm"
+    [class.btn-primary]="filtreStatut === 'TOUS'"
+    [class.btn-outline-secondary]="filtreStatut !== 'TOUS'"
+    (click)="filtreStatut = 'TOUS'">
+    Toutes ({{ interventions.length }})
+  </button>
+  <button
+    *ngFor="let s of statuts"
+    class="btn btn-sm"
+    [class.btn-primary]="filtreStatut === s"
+    [class.btn-outline-secondary]="filtreStatut !== s"
+    (click)="filtreStatut = s">
+    {{ formaterStatut(s) }}
+  </button>
+</div>
+
+<div *ngIf="chargement" class="text-center py-5">
+  <div class="spinner-border text-primary"></div>
+</div>
+
+<div *ngIf="erreur" class="alert alert-danger">{{ erreur }}</div>
+
+<div *ngIf="!chargement && !erreur">
+  <div *ngIf="interventionsFiltrees.length === 0" class="text-center text-muted py-5">
+    Aucune intervention trouvée.
+  </div>
+
+  <div class="card" *ngIf="interventionsFiltrees.length > 0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Véhicule</th>
+            <th>Type</th>
+            <th>Priorité</th>
+            <th>Statut</th>
+            <th>Mécanicien</th>
+            <th>Date dépôt</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let i of interventionsFiltrees">
+            <td>
+              <strong>{{ i.vehicule.immatriculation }}</strong>
+              <div class="text-muted small">{{ i.vehicule.marque }} {{ i.vehicule.modele }}</div>
+            </td>
+            <td>{{ i.type }}</td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'bg-secondary': i.priorite === 'BASSE',
+                'bg-info': i.priorite === 'NORMALE',
+                'bg-warning text-dark': i.priorite === 'HAUTE',
+                'bg-danger': i.priorite === 'URGENTE'
+              }">{{ i.priorite }}</span>
+            </td>
+            <td>
+              <span class="badge-statut" [ngClass]="'badge-' + i.statut">
+                {{ formaterStatut(i.statut) }}
+              </span>
+            </td>
+            <td>{{ i.mecanicien?.nom || '—' }}</td>
+            <td class="small text-muted">{{ i.dateDepot | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="text-end">
+              <a [routerLink]="['/interventions', i.id]" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

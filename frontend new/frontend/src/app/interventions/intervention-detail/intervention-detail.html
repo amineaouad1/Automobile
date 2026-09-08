@@ -1,0 +1,168 @@
+<div *ngIf="chargement" class="text-center py-5">
+  <div class="spinner-border text-primary"></div>
+</div>
+
+<div *ngIf="erreur && !intervention" class="alert alert-danger">{{ erreur }}</div>
+
+<div *ngIf="intervention">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <a routerLink="/interventions" class="text-decoration-none small text-muted">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+      </a>
+      <h2 class="mb-0 mt-1">Intervention #{{ intervention.id }}</h2>
+    </div>
+    <span class="badge-statut" [ngClass]="'badge-' + intervention.statut" style="font-size: 0.9rem;">
+      {{ formaterStatut(intervention.statut) }}
+    </span>
+  </div>
+
+  <div *ngIf="erreur" class="alert alert-danger">{{ erreur }}</div>
+
+  <div class="row g-4">
+
+    <div class="col-md-5">
+      <div class="card mb-3">
+        <div class="card-header bg-white"><strong>Véhicule</strong></div>
+        <div class="card-body">
+          <p class="mb-1"><strong>{{ intervention.vehicule.immatriculation }}</strong></p>
+          <p class="mb-1 text-muted">{{ intervention.vehicule.marque }} {{ intervention.vehicule.modele }} ({{ intervention.vehicule.annee }})</p>
+          <p class="mb-1 text-muted small">{{ intervention.vehicule.kilometrage }} km</p>
+          <p class="mb-0 text-muted small">Client : {{ intervention.vehicule.clientFictif }}</p>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header bg-white"><strong>Détails</strong></div>
+        <div class="card-body">
+          <p class="mb-2"><span class="text-muted">Type:</span> {{ intervention.type }}</p>
+          <p class="mb-2"><span class="text-muted">Priorité:</span> {{ intervention.priorite }}</p>
+          <p class="mb-2"><span class="text-muted">Description client:</span><br>{{ intervention.descriptionClient }}</p>
+          <p class="mb-2" *ngIf="intervention.coutEstime"><span class="text-muted">Coût estimé:</span> {{ intervention.coutEstime }} DH</p>
+          <p class="mb-2" *ngIf="intervention.dateRestitutionPrevue">
+            <span class="text-muted">Restitution prévue:</span> {{ intervention.dateRestitutionPrevue | date: 'dd/MM/yyyy' }}
+          </p>
+          <p class="mb-0 small text-muted">Déposé le {{ intervention.dateDepot | date: 'dd/MM/yyyy HH:mm' }}</p>
+        </div>
+      </div>
+
+      <!-- Diagnostic (écran dédié demandé par le cahier des charges) -->
+      <div class="card mb-3">
+        <div class="card-header bg-white"><strong>Diagnostic</strong></div>
+        <div class="card-body">
+          <form [formGroup]="diagnosticForm" (ngSubmit)="enregistrerDiagnostic()" *ngIf="diagnosticModifiable">
+            <textarea
+              class="form-control mb-2"
+              rows="3"
+              formControlName="diagnostic"
+              placeholder="Décrire le diagnostic technique du véhicule..."></textarea>
+            <button type="submit" class="btn btn-sm btn-outline-primary" [disabled]="diagnosticForm.invalid || enCoursDiagnostic">
+              <span *ngIf="enCoursDiagnostic" class="spinner-border spinner-border-sm me-2"></span>
+              Enregistrer le diagnostic
+            </button>
+            <p class="small text-muted mt-2 mb-0">
+              <i class="bi bi-info-circle me-1"></i>Requis avant de passer au statut « Devis à valider ».
+            </p>
+          </form>
+          <p *ngIf="!diagnosticModifiable" class="mb-0">
+            {{ intervention.diagnostic || 'Aucun diagnostic renseigné.' }}
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header bg-white"><strong>Mécanicien</strong></div>
+        <div class="card-body">
+          <p *ngIf="intervention.mecanicien" class="mb-0">
+            {{ intervention.mecanicien.nom }} <span class="text-muted small">({{ intervention.mecanicien.specialite }})</span>
+          </p>
+          <p *ngIf="!intervention.mecanicien" class="text-muted mb-3">Aucun mécanicien affecté</p>
+
+          <form *ngIf="authService.isManager()" [formGroup]="mecanicienForm" (ngSubmit)="affecterMecanicien()" class="d-flex gap-2 mt-2">
+            <select class="form-select form-select-sm" formControlName="mecanicienId">
+              <option value="" disabled selected>Affecter un mécanicien</option>
+              <option *ngFor="let m of mecaniciensDisponibles" [value]="m.id">{{ m.nom }}</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-outline-primary" [disabled]="mecanicienForm.invalid || enCoursAffectation">
+              OK
+            </button>
+          </form>
+          <p *ngIf="!authService.isManager()" class="small text-muted mb-0 mt-2">
+            <i class="bi bi-lock me-1"></i>Réservé au responsable atelier.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-7">
+      <div class="card mb-3">
+        <div class="card-header bg-white"><strong>Faire évoluer le statut</strong></div>
+        <div class="card-body">
+
+          <div *ngIf="transitionsPossibles.length === 0" class="text-muted">
+            Aucune action possible — intervention clôturée.
+          </div>
+
+          <form *ngIf="transitionsPossibles.length > 0" [formGroup]="statutForm" (ngSubmit)="changerStatut()">
+            <div class="mb-3">
+              <label class="form-label">Nouveau statut</label>
+              <select class="form-select" formControlName="nouveauStatut">
+                <option value="" disabled selected>Choisir...</option>
+                <option *ngFor="let s of transitionsPossibles" [value]="s">{{ formaterStatut(s) }}</option>
+              </select>
+            </div>
+
+            <div class="mb-3" *ngIf="afficherCoutEstime">
+              <label class="form-label">Coût estimé (DH)</label>
+              <input type="number" class="form-control" formControlName="coutEstime" step="0.01">
+            </div>
+
+            <div class="mb-3" *ngIf="afficherCoutEstime">
+              <label class="form-label">Date de restitution prévue (optionnel)</label>
+              <input type="date" class="form-control" formControlName="dateRestitutionPrevue">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Commentaire</label>
+              <textarea class="form-control" rows="3" formControlName="commentaire"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" [disabled]="statutForm.invalid || enCoursStatut">
+              <span *ngIf="enCoursStatut" class="spinner-border spinner-border-sm me-2"></span>
+              Valider le changement
+            </button>
+          </form>
+
+        </div>
+      </div>
+
+      <!-- Historique des changements de statut -->
+      <div class="card">
+        <div class="card-header bg-white"><strong>Historique</strong></div>
+        <div class="card-body p-0">
+          <div *ngIf="historique.length === 0" class="text-muted text-center py-3">
+            Aucun changement enregistré.
+          </div>
+          <ul class="list-group list-group-flush" *ngIf="historique.length > 0">
+            <li class="list-group-item" *ngFor="let h of historique">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <span class="badge-statut" [ngClass]="'badge-' + h.nouveauStatut">
+                    {{ formaterStatut(h.ancienStatut) }} → {{ formaterStatut(h.nouveauStatut) }}
+                  </span>
+                  <p class="mb-0 mt-1 small" *ngIf="h.commentaire">{{ h.commentaire }}</p>
+                </div>
+                <div class="text-end small text-muted">
+                  <div>{{ h.auteurNom }}</div>
+                  <div>{{ h.date | date: 'dd/MM/yyyy HH:mm' }}</div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

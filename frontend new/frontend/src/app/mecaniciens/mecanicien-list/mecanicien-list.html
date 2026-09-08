@@ -1,0 +1,60 @@
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">
+      <i class="bi bi-person-gear me-2"></i>Mécaniciens
+    </h2>
+    <a *ngIf="authService.isManager()" routerLink="/mecaniciens/nouveau" class="btn btn-accent">
+      <i class="bi bi-plus-lg me-1"></i>Ajouter un mécanicien
+    </a>
+  </div>
+
+  <div *ngIf="chargement" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+  </div>
+
+  <div *ngIf="erreur" class="alert alert-danger" role="alert">{{ erreur }}</div>
+
+  <div *ngIf="!chargement && !erreur" class="card shadow-sm">
+    <div class="card-body p-0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+        <tr>
+          <th>Nom</th>
+          <th>Spécialité</th>
+          <th>Disponibilité</th>
+          <th *ngIf="authService.isManager()"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let m of mecaniciens">
+          <td class="fw-semibold">{{ m.nom }}</td>
+          <td>{{ m.specialite }}</td>
+          <td>
+            <span class="badge-statut" [ngClass]="m.disponible ? 'badge-TERMINEE' : 'badge-ANNULEE'">
+              {{ m.disponible ? 'Disponible' : 'Indisponible' }}
+            </span>
+          </td>
+          <td class="text-end" *ngIf="authService.isManager()">
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              [disabled]="enCoursId === m.id"
+              (click)="toggleDisponibilite(m)">
+              <span *ngIf="enCoursId === m.id" class="spinner-border spinner-border-sm me-1"></span>
+              Marquer {{ m.disponible ? 'indisponible' : 'disponible' }}
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="mecaniciens.length === 0">
+          <td colspan="4" class="text-center text-muted py-4">
+            Aucun mécanicien enregistré pour le moment.
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
