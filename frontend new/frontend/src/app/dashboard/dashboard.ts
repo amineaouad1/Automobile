@@ -1,144 +1,76 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { InterventionService } from '../services/intervention';
-import { MecanicienService } from '../services/mecanicien';
-import { InterventionDTO, StatutIntervention } from '../models/intervention.model';
-import { MecanicienDTO } from '../models/mecanicien.model';
-
-interface StatutBar {
-  statut: StatutIntervention;
-  label: string;
-  count: number;
-  pourcentage: number;
-  couleur: string;
-}
-
-interface ChargeMecanicien {
-  mecanicien: MecanicienDTO;
-  nbInterventionsActives: number;
-}
-
-const STATUTS_ACTIFS: StatutIntervention[] = [
-  'RECUE',
-  'DIAGNOSTIC_EN_COURS',
-  'DEVIS_A_VALIDER',
-  'EN_REPARATION',
-];
+import { InterventionDTO } from '../models/intervention.model';
 
 @Component({
   selector: 'app-dashboard',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './dashboard.html',
+  standalone: true,
+  imports: [CommonModule]
 })
 export class DashboardComponent implements OnInit {
   interventions: InterventionDTO[] = [];
-  mecaniciens: MecanicienDTO[] = [];
-  chargement = true;
-  erreur: string | null = null;
 
-  private readonly config: { statut: StatutIntervention; label: string; couleur: string }[] = [
-    { statut: 'RECUE', label: 'Reçue', couleur: '#1565c0' },
-    { statut: 'DIAGNOSTIC_EN_COURS', label: 'Diagnostic', couleur: '#e65100' },
-    { statut: 'DEVIS_A_VALIDER', label: 'Devis', couleur: '#ad1457' },
-    { statut: 'EN_REPARATION', label: 'Réparation', couleur: '#5e35b1' },
-    { statut: 'TERMINEE', label: 'Terminée', couleur: '#2e7d32' },
-    { statut: 'RESTITUEE', label: 'Restituée', couleur: '#455a64' },
-  ];
+  stats = {
+    recuesAujourdhui: 0,
+    enDiagnostic: 0,
+    enReparation: 0,
+    terminees: 0,
+    retards: 0
+  };
 
-  constructor(
-    private interventionService: InterventionService,
-    private mecanicienService: MecanicienService,
-    private router: Router,
-  ) {}
+  chargeMecaniciens: { nom: string, count: number }[] = [];
+
+  constructor(private interventionService: InterventionService) {}
 
   ngOnInit(): void {
-    this.chargerDonnees();
+    this.loadDashboardData();
   }
 
-  chargerDonnees(): void {
-    this.chargement = true;
+  loadDashboardData(): void {
     this.interventionService.listerTous().subscribe({
-      next: (data) => {
+      next: (data: InterventionDTO[]) => {
         this.interventions = data;
-        this.mecanicienService.listerTous().subscribe({
-          next: (mecs) => {
-            this.mecaniciens = mecs;
-            this.chargement = false;
-          },
-          error: () => {
-            this.chargement = false;
-          },
-        });
+        this.calculateStats();
       },
-      error: () => {
-        this.erreur = 'Impossible de charger les interventions.';
-        this.chargement = false;
-      },
+      error: (err: any) => console.error('Erreur lors du chargement du dashboard', err)
     });
   }
 
-  compterParStatut(statut: StatutIntervention): number {
-    return this.interventions.filter((i) => i.statut === statut).length;
-  }
+  calculateStats(): void {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  get recuesAujourdhui(): number {
-    const aujourdhui = new Date().toDateString();
-    return this.interventions.filter(
-      (i) => new Date(i.dateDepot).toDateString() === aujourdhui,
-    ).length;
-  }
+    let mecaniciensMap = new Map<string, number>();
 
-  get totalActives(): number {
-    return this.interventions.filter(
-      (i) => i.statut !== 'RESTITUEE' && i.statut !== 'ANNULEE',
-    ).length;
-  }
+    this.stats = { recuesAujourdhui: 0, enDiagnostic: 0, enReparation: 0, terminees: 0, retards: 0 };
 
-  get repartitionParStatut(): StatutBar[] {
-    const max = Math.max(1, ...this.config.map((c) => this.compterParStatut(c.statut)));
-    return this.config.map((c) => {
-      const count = this.compterParStatut(c.statut);
-      return {
-        statut: c.statut,
-        label: c.label,
-        count,
-        pourcentage: (count / max) * 100,
-        couleur: c.couleur,
-      };
+    this.interventions.forEach(inv => {
+      if (inv.dateDepot) {
+        const dateDepot = new Date(inv.dateDepot);
+        if (inv.statut === 'RECUE' && dateDepot >= today) {
+          this.stats.recuesAujourdhui++;
+        }
+      }
+
+      if (inv.statut === 'DIAGNOSTIC_EN_COURS') this.stats.enDiagnostic++;
+      if (inv.statut === 'EN_REPARATION') this.stats.enReparation++;
+      if (inv.statut === 'TERMINEE') this.stats.terminees++;
+
+      if (inv.dateRestitutionPrevue && inv.statut !== 'RESTITUEE' && inv.statut !== 'ANNULEE') {
+        const datePrevue = new Date(inv.dateRestitutionPrevue);
+        if (datePrevue < new Date()) {
+          this.stats.retards++;
+        }
+      }
+
+      if (inv.mecanicien && (inv.statut === 'EN_REPARATION' || inv.statut === 'DEVIS_A_VALIDER')) {
+        const nom = inv.mecanicien.nom;
+        mecaniciensMap.set(nom, (mecaniciensMap.get(nom) || 0) + 1);
+      }
     });
-  }
 
-  // Charge par mécanicien : nombre d'interventions actives (non clôturées) par mécanicien
-  get chargeParMecanicien(): ChargeMecanicien[] {
-    return this.mecaniciens
-      .map((m) => ({
-        mecanicien: m,
-        nbInterventionsActives: this.interventions.filter(
-          (i) => i.mecanicien?.id === m.id && STATUTS_ACTIFS.includes(i.statut),
-        ).length,
-      }))
-      .sort((a, b) => b.nbInterventionsActives - a.nbInterventionsActives);
-  }
-
-  // Retards de restitution : interventions non clôturées dont la date de restitution prévue est dépassée
-  get retardsRestitution(): InterventionDTO[] {
-    const maintenant = new Date();
-    return this.interventions.filter(
-      (i) =>
-        i.dateRestitutionPrevue &&
-        i.statut !== 'RESTITUEE' &&
-        i.statut !== 'ANNULEE' &&
-        new Date(i.dateRestitutionPrevue) < maintenant,
-    );
-  }
-
-  allerVersInterventions(): void {
-    this.router.navigate(['/interventions']);
-  }
-
-  allerVersIntervention(id: number): void {
-    this.router.navigate(['/interventions', id]);
+    this.chargeMecaniciens = Array.from(mecaniciensMap, ([nom, count]) => ({ nom, count }));
   }
 }
